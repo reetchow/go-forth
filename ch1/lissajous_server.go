@@ -23,7 +23,7 @@ const (
 func main() {
 	http.HandleFunc("/", handler)
 	fmt.Println("Running server...")
-	log.Fatal(http.ListenAndServe("localhost:8000", nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8000", nil))
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func lissajous(out io.Writer) {
 	const (
 		cycles = 5
 		res = 0.001
-		size = 1000
+		size = 400
 		nframes = 64
 		delay = 8
 	)
