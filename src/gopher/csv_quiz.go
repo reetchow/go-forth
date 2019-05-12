@@ -6,15 +6,20 @@ import(
   "encoding/csv"
   "flag"
   "log"
+  "io"
+  "bufio"
+  "strings"
 )
 
 func main() {
+  reader := bufio.NewReader(os.Stdin)
 
   // get filename from flag
-  filename := flag.String("f", "", "enter csv filename of questions")
-
+  filename := flag.String("file", "filename.csv", "enter csv file of questions")
+  flag.Parse()
+  fmt.Println("filename: " + *filename)
   // open file
-  file, err := os.Open(&filename)
+  file, err := os.Open(*filename)
   if err != nil {
     log.Fatal(err)
   }
@@ -32,7 +37,14 @@ func main() {
       log.Fatal(err)
     }
 
-    fmt.Println(record)
+    fmt.Printf("%s: ", record[0])
+    input, _ := reader.ReadString('\n')
+
+    if strings.TrimRight(input, "\n") == record[1] {
+      fmt.Println("Correct!")
+    } else {
+      fmt.Println("Wrong!")
+    }
   }
   //   ask user question
   //   get input
