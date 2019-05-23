@@ -7,11 +7,13 @@ import(
   "flag"
   "log"
   "strings"
+  "time"
 )
 
 func main() {
   // get filename from flag
   filename := flag.String("file", "filename.csv", "enter csv file of questions")
+  timeLimit := flag.Int("limit", 30, "the time limit for the quiz in seconds")
   flag.Parse()
 
   // open file
@@ -31,17 +33,30 @@ func main() {
 
   problems := parseLines(lines)
 
+  timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
+
   // could break this out into its own function to make it easier to test
   count := 0
   for i, p := range problems {
     fmt.Printf("Problem #%d: %s = ", i+1, p.q)
-    var answer string
-    fmt.Scanf("%s\n", &answer)
-    if answer == p.a {
-      fmt.Println("Correct!\n")
-      count++
-    } else {
-      fmt.Println("Wrong!\n")
+    answerChan := make(chan string)
+    go func() {
+      var answer string
+      fmt.Scanf("%s\n", &answer)
+      answerChan <- answer
+    }()
+
+    select {
+      case <-timer.C:
+        fmt.Printf("\nYou got %d out of %d problems\n", count, len(lines))
+        return
+      case answer := <-answerChan:
+        if answer == p.a {
+          fmt.Println("Correct!")
+          count++
+        } else {
+          fmt.Println("Wrong!")
+        }
     }
   }
 
