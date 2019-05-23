@@ -6,47 +6,65 @@ import(
   "encoding/csv"
   "flag"
   "log"
-  "io"
-  "bufio"
   "strings"
 )
 
 func main() {
-  reader := bufio.NewReader(os.Stdin)
-
   // get filename from flag
   filename := flag.String("file", "filename.csv", "enter csv file of questions")
   flag.Parse()
-  fmt.Println("filename: " + *filename)
+
   // open file
   file, err := os.Open(*filename)
   if err != nil {
     log.Fatal(err)
+    os.Exit(1)
   }
 
   // parse file with csv package
   r := csv.NewReader(file)
+  lines, err := r.ReadAll()
 
-  // for question in file
-  for {
-    record, err := r.Read()
-    if err == io.EOF {
-      break;
-    }
-    if err != nil {
-      log.Fatal(err)
-    }
+  if err  != nil {
+    exit("Failed to parse the provided CSV file.\n")
+  }
 
-    fmt.Printf("%s: ", record[0])
-    input, _ := reader.ReadString('\n')
+  problems := parseLines(lines)
 
-    if strings.TrimRight(input, "\n") == record[1] {
-      fmt.Println("Correct!")
+  // could break this out into its own function to make it easier to test
+  count := 0
+  for i, p := range problems {
+    fmt.Printf("Problem #%d: %s = ", i+1, p.q)
+    var answer string
+    fmt.Scanf("%s\n", &answer)
+    if answer == p.a {
+      fmt.Println("Correct!\n")
+      count++
     } else {
-      fmt.Println("Wrong!")
+      fmt.Println("Wrong!\n")
     }
   }
-  //   ask user question
-  //   get input
-  //   check input
+
+  fmt.Printf("You got %d out of %d problems.\n", count, len(lines))
+}
+
+type problem struct {
+  q string
+  a string
+}
+
+func parseLines(lines [][]string) []problem {
+  ret := make([]problem, len(lines))
+  for i, line := range lines {
+    ret[i] = problem{
+      q: line[0],
+      a: strings.TrimSpace(line[1]),
+    }
+  }
+  return ret
+}
+
+func exit(msg string) {
+  fmt.Println(msg)
+  os.Exit(1)
 }
